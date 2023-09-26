@@ -7,7 +7,7 @@ from typing import Callable, Awaitable, Dict, Any
 
 
 def work_hours() -> bool:
-    return datetime.now().weekday() in (0, 1, 2, 3, 4) and datetime.now().hour in range(9, 19)
+    return datetime.now().weekday() in (0, 1, 2, 3, 4) and datetime.now().hour in range(9, 23)
 
 
 class WorkHoursMiddleware(BaseMiddleware):

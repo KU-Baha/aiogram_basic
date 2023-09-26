@@ -11,6 +11,7 @@ from core.handlers.basic import get_inline, get_start, get_menu, get_test, get_l
 from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
 from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
+from core.handlers import form
 
 from core.filters.iscontact import IsTrueContact
 
@@ -20,6 +21,7 @@ from core.middlewares.db import DbSession
 
 from core.utils.callbackdata import MacInfo
 from core.utils.commands import set_commands
+from core.utils.statesform import StepForm
 
 
 async def start_bot(bot: Bot):
@@ -43,6 +45,7 @@ async def create_pool():
         command_timeout=settings.db.command_timeout
     )
 
+
 async def start():
     logging.basicConfig(
         level=logging.INFO,
@@ -61,11 +64,16 @@ async def start():
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
 
-    dp.message.register(order, Command("pay"))
     dp.pre_checkout_query.register(pre_checkout_query)
     dp.message.register(successful_payment, F.successful_payment)
     dp.shipping_query.register(shipping_check)
 
+    dp.message.register(form.get_form, Command("form"))
+    dp.message.register(form.get_name, StepForm.GET_NAME)
+    dp.message.register(form.get_last_name, StepForm.GET_LAST_NAME)
+    dp.message.register(form.get_age, StepForm.GET_AGE)
+
+    dp.message.register(order, Command("pay"))
     dp.message.register(get_start, Command("start"))
     dp.message.register(get_menu, Command("menu"))
     dp.message.register(get_test, Command("test"))
