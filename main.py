@@ -1,19 +1,25 @@
 import asyncio
 import logging
 
+import asyncpg
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, and_f
+
+from core.settings import settings
 
 from core.handlers.basic import get_inline, get_start, get_menu, get_test, get_location, get_photo, get_hello
 from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
 from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
+
 from core.filters.iscontact import IsTrueContact
+
 from core.middlewares.work_hours import WorkHoursMiddleware
-from core.settings import settings
+from core.middlewares.counter import CounterMiddleware
+from core.middlewares.db import DbSession
+
 from core.utils.callbackdata import MacInfo
 from core.utils.commands import set_commands
-from core.middlewares.counter import CounterMiddleware
 
 
 async def start_bot(bot: Bot):
@@ -27,6 +33,16 @@ async def stop_bot(bot: Bot):
     logging.info("Бот остановлен")
 
 
+async def create_pool():
+    return await asyncpg.create_pool(
+        user=settings.db.user,
+        password=settings.db.password,
+        host=settings.db.host,
+        port=settings.db.port,
+        database=settings.db.database,
+        command_timeout=settings.db.command_timeout
+    )
+
 async def start():
     logging.basicConfig(
         level=logging.INFO,
@@ -34,9 +50,11 @@ async def start():
                "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s",
     )
     bot = Bot(token=settings.bots.token, parse_mode='HTML')
+    pool_conn = await create_pool()
 
     dp = Dispatcher()
 
+    dp.update.middleware.register(DbSession(pool_conn))
     dp.update.middleware.register(WorkHoursMiddleware())
     dp.message.middleware.register(CounterMiddleware())
 

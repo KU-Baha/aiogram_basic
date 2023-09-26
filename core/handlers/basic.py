@@ -6,6 +6,8 @@ from aiogram.types import Message
 from core.keyboards.reply import reply_kb, loc_tel_poll_kb, get_reply_kb
 from core.keyboards.inline import select_macbook, get_inline_kb
 
+from core.utils.db import Request
+
 
 async def get_inline(message: Message, bot: Bot):
     await message.answer(f'Привет, {message.from_user.full_name}!'
@@ -13,7 +15,8 @@ async def get_inline(message: Message, bot: Bot):
                          reply_markup=get_inline_kb())
 
 
-async def get_start(message: Message, bot: Bot, counter: str):
+async def get_start(message: Message, bot: Bot, counter: str, request: Request):
+    await request.add_user(message.from_user.id, message.from_user.username)
     # await bot.send_message(message.chat.id, f'Привет, {message.from_user.full_name}!')
     # await message.reply('Для начала работы введи команду /start')
     await message.answer(f'Сообщение #{counter}')
