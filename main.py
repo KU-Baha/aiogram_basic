@@ -7,6 +7,7 @@ from aiogram.filters import Command, and_f
 from core.handlers.basic import get_inline, get_start, get_menu, get_test, get_location, get_photo, get_hello
 from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
+from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
 from core.filters.iscontact import IsTrueContact
 from core.settings import settings
 from core.utils.callbackdata import MacInfo
@@ -36,6 +37,11 @@ async def start():
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
+
+    dp.message.register(order, Command("pay"))
+    dp.pre_checkout_query.register(pre_checkout_query)
+    dp.message.register(successful_payment, F.successful_payment)
+    dp.shipping_query.register(shipping_check)
 
     dp.message.register(get_start, Command("start"))
     dp.message.register(get_menu, Command("menu"))
