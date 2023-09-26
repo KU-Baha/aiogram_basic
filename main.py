@@ -9,9 +9,11 @@ from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
 from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
 from core.filters.iscontact import IsTrueContact
+from core.middlewares.work_hours import WorkHoursMiddleware
 from core.settings import settings
 from core.utils.callbackdata import MacInfo
 from core.utils.commands import set_commands
+from core.middlewares.counter import CounterMiddleware
 
 
 async def start_bot(bot: Bot):
@@ -34,6 +36,9 @@ async def start():
     bot = Bot(token=settings.bots.token, parse_mode='HTML')
 
     dp = Dispatcher()
+
+    dp.message.middleware.register(WorkHoursMiddleware())
+    dp.message.middleware.register(CounterMiddleware())
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)

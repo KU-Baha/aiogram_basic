@@ -13,9 +13,10 @@ async def get_inline(message: Message, bot: Bot):
                          reply_markup=get_inline_kb())
 
 
-async def get_start(message: Message, bot: Bot):
+async def get_start(message: Message, bot: Bot, counter: str):
     # await bot.send_message(message.chat.id, f'Привет, {message.from_user.full_name}!')
     # await message.reply('Для начала работы введи команду /start')
+    await message.answer(f'Сообщение #{counter}')
     await message.answer(f'Привет, {message.from_user.full_name}!',
                          reply_markup=reply_kb)
 
