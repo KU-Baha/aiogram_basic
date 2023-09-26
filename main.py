@@ -37,7 +37,7 @@ async def start():
 
     dp = Dispatcher()
 
-    dp.message.middleware.register(WorkHoursMiddleware())
+    dp.update.middleware.register(WorkHoursMiddleware())
     dp.message.middleware.register(CounterMiddleware())
 
     dp.startup.register(start_bot)
