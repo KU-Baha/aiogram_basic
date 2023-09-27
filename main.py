@@ -1,12 +1,15 @@
 import asyncio
 import logging
+from datetime import datetime, timedelta
 
 import asyncpg
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, and_f
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from core.settings import settings
 
+from core.handlers.apsched import send_message_time, send_message_cron, send_message_interval
 from core.handlers.basic import get_inline, get_start, get_menu, get_test, get_location, get_photo, get_hello
 from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
@@ -18,6 +21,7 @@ from core.filters.iscontact import IsTrueContact
 from core.middlewares.work_hours import WorkHoursMiddleware
 from core.middlewares.counter import CounterMiddleware
 from core.middlewares.db import DbSession
+from core.middlewares.apsched import SchedulerMiddleware
 
 from core.utils.callbackdata import MacInfo
 from core.utils.commands import set_commands
@@ -56,10 +60,37 @@ async def start():
     pool_conn = await create_pool()
 
     dp = Dispatcher()
+    scheduler = AsyncIOScheduler(timezone="Asia/Bishkek")
+
+    now = datetime.now()
+
+    scheduler.add_job(
+        send_message_time,
+        "date",
+        run_date=now + timedelta(seconds=10),
+        args=[bot],
+        # kwargs={"bot": bot}
+    )
+    scheduler.add_job(
+        send_message_cron,
+        "cron",
+        hour=now.hour,
+        minute=now.minute + 1,
+        start_date=now,
+        args=[bot]
+    )
+    scheduler.add_job(
+        send_message_interval,
+        "interval",
+        seconds=60,
+        args=[bot]
+    )
+    scheduler.start()
 
     dp.update.middleware.register(DbSession(pool_conn))
     dp.update.middleware.register(WorkHoursMiddleware())
     dp.message.middleware.register(CounterMiddleware())
+    dp.update.middleware.register(SchedulerMiddleware(scheduler))
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
