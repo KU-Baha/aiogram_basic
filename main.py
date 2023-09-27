@@ -3,9 +3,15 @@ import logging
 from datetime import datetime, timedelta
 
 import asyncpg
+
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, and_f
+from aiogram.fsm.storage.redis import RedisStorage
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
+
+from apscheduler_di import ContextSchedulerDecorator
 
 from core.settings import settings
 
@@ -59,32 +65,42 @@ async def start():
     bot = Bot(token=settings.bots.token, parse_mode='HTML')
     pool_conn = await create_pool()
 
+    storage = RedisStorage.from_url('redis://localhost:6379/0')
+    jobstores = {
+        'default': RedisJobStore(
+            jobs_key='dispatched_trips_jobs',
+            run_times_key='dispatched_trips_running',
+            host='localhost',
+            db=2,
+            port=6379,
+        )
+    }
+
     dp = Dispatcher()
-    scheduler = AsyncIOScheduler(timezone="Asia/Bishkek")
+    scheduler = ContextSchedulerDecorator(
+        AsyncIOScheduler(timezone="Asia/Bishkek", jobstores=jobstores)
+    )
+    scheduler.ctx.add_instance(bot, declared_class=Bot)
 
     now = datetime.now()
 
-    scheduler.add_job(
-        send_message_time,
-        "date",
-        run_date=now + timedelta(seconds=10),
-        args=[bot],
-        # kwargs={"bot": bot}
-    )
-    scheduler.add_job(
-        send_message_cron,
-        "cron",
-        hour=now.hour,
-        minute=now.minute + 1,
-        start_date=now,
-        args=[bot]
-    )
-    scheduler.add_job(
-        send_message_interval,
-        "interval",
-        seconds=60,
-        args=[bot]
-    )
+    # scheduler.add_job(
+    #     send_message_time,
+    #     "date",
+    #     run_date=now + timedelta(seconds=10),
+    # )
+    # scheduler.add_job(
+    #     send_message_cron,
+    #     "cron",
+    #     hour=now.hour,
+    #     minute=now.minute + 1,
+    #     start_date=now,
+    # )
+    # scheduler.add_job(
+    #     send_message_interval,
+    #     "interval",
+    #     seconds=60,
+    # )
     scheduler.start()
 
     dp.update.middleware.register(DbSession(pool_conn))
