@@ -1,10 +1,12 @@
+import time
+
 from aiogram import Bot
 from aiogram.types import Message, FSInputFile, InputMediaPhoto, InputMedia, InputMediaVideo
 from aiogram.utils.chat_action import ChatActionSender
 
 
 async def get_audio(message: Message, bot: Bot):
-    audio = FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Voice.m4a', filename='BotAudio.mp3')
+    audio = FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/music.mp3')
     await bot.send_audio(message.chat.id, audio, caption='Это аудио сообщение')
 
 
@@ -14,24 +16,25 @@ async def get_document(message: Message, bot: Bot):
 
 
 async def get_media_group(message: Message, bot: Bot):
-    photo1_mg = InputMediaPhoto(
-        type='photo',
-        media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Photo 1.png'),
-    )
-    photo2_mg = InputMediaPhoto(
-        type='photo',
-        media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Photo 2.jpeg'),
-    )
-    video_mg = InputMediaVideo(
-        type='video',
-        media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Video Note.mp4', filename='BotVideo.mp4'),
-    )
-    media = [
-        photo1_mg,
-        photo2_mg,
-        video_mg
-    ]
-    await bot.send_media_group(message.chat.id, media=media)
+    async with ChatActionSender(bot=bot, chat_id=message.chat.id, action='upload_photo'):
+        photo1_mg = InputMediaPhoto(
+            type='photo',
+            media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Photo 1.png'),
+        )
+        photo2_mg = InputMediaPhoto(
+            type='photo',
+            media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Photo 2.jpeg'),
+        )
+        video_mg = InputMediaVideo(
+            type='video',
+            media=FSInputFile('/Users/baha/Desktop/Work/tg_bot/media/Bot Test Video Note.mp4', filename='BotVideo.mp4'),
+        )
+        media = [
+            photo1_mg,
+            photo2_mg,
+            video_mg
+        ]
+        await bot.send_media_group(message.chat.id, media=media)
 
 
 async def get_photo(message: Message, bot: Bot):

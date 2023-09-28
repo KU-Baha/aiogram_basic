@@ -6,7 +6,7 @@ import asyncpg
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, and_f
-from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.utils.chat_action import ChatActionMiddleware
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.redis import RedisJobStore
@@ -16,13 +16,29 @@ from apscheduler_di import ContextSchedulerDecorator
 from core.settings import settings
 
 from core.handlers.apsched import send_message_time, send_message_cron, send_message_interval
-from core.handlers.basic import get_inline, get_start, get_menu, get_test, get_location, get_photo, get_hello
+from core.handlers.basic import (
+    get_inline,
+    get_start,
+    get_menu,
+    get_test,
+    get_location,
+    get_photo,
+    get_hello
+)
 from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
 from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
 from core.handlers import form
-from core.handlers.send_media import get_audio, get_document, get_media_group, get_video, get_sticker, get_video_note, \
-    get_voice
+from core.handlers.send_media import (
+    get_audio,
+    get_document,
+    get_photo as get_photo_media,
+    get_media_group,
+    get_video,
+    get_sticker,
+    get_video_note,
+    get_voice,
+)
 
 from core.filters.iscontact import IsTrueContact
 
@@ -107,6 +123,7 @@ async def start():
     # )
     scheduler.start()
 
+    dp.message.middleware.register(ChatActionMiddleware())
     dp.update.middleware.register(DbSession(pool_conn))
     dp.update.middleware.register(WorkHoursMiddleware())
     dp.message.middleware.register(CounterMiddleware())
@@ -119,10 +136,10 @@ async def start():
     dp.message.register(successful_payment, F.successful_payment)
     dp.shipping_query.register(shipping_check)
 
-    dp.message.register(get_audio, Command("audio"))
+    dp.message.register(get_audio, Command("audio"), flags={'chat_action': 'upload_audio'})
     dp.message.register(get_document, Command("document"))
     dp.message.register(get_media_group, Command("media_group"))
-    dp.message.register(get_photo, Command("photo"))
+    dp.message.register(get_photo_media, Command("photo"))
     dp.message.register(get_video, Command("video"))
     dp.message.register(get_sticker, Command("sticker"))
     dp.message.register(get_video_note, Command("video_note"))
