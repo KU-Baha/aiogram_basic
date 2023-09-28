@@ -21,6 +21,8 @@ from core.handlers.contact import get_true_contact, get_false_contact
 from core.handlers.callback import select_macbook
 from core.handlers.pay import order, pre_checkout_query, successful_payment, shipping_check
 from core.handlers import form
+from core.handlers.send_media import get_audio, get_document, get_media_group, get_video, get_sticker, get_video_note, \
+    get_voice
 
 from core.filters.iscontact import IsTrueContact
 
@@ -65,7 +67,8 @@ async def start():
     bot = Bot(token=settings.bots.token, parse_mode='HTML')
     pool_conn = await create_pool()
 
-    storage = RedisStorage.from_url('redis://localhost:6379/0')
+    # storage = RedisStorage.from_url('redis://localhost:6379/0')
+
     jobstores = {
         'default': RedisJobStore(
             jobs_key='dispatched_trips_jobs',
@@ -77,12 +80,13 @@ async def start():
     }
 
     dp = Dispatcher()
+
     scheduler = ContextSchedulerDecorator(
         AsyncIOScheduler(timezone="Asia/Bishkek", jobstores=jobstores)
     )
     scheduler.ctx.add_instance(bot, declared_class=Bot)
 
-    now = datetime.now()
+    # now = datetime.now()
 
     # scheduler.add_job(
     #     send_message_time,
@@ -114,6 +118,15 @@ async def start():
     dp.pre_checkout_query.register(pre_checkout_query)
     dp.message.register(successful_payment, F.successful_payment)
     dp.shipping_query.register(shipping_check)
+
+    dp.message.register(get_audio, Command("audio"))
+    dp.message.register(get_document, Command("document"))
+    dp.message.register(get_media_group, Command("media_group"))
+    dp.message.register(get_photo, Command("photo"))
+    dp.message.register(get_video, Command("video"))
+    dp.message.register(get_sticker, Command("sticker"))
+    dp.message.register(get_video_note, Command("video_note"))
+    dp.message.register(get_voice, Command("voice"))
 
     dp.message.register(form.get_form, Command("form"))
     dp.message.register(form.get_name, StepForm.GET_NAME)

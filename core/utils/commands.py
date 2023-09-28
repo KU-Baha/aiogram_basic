@@ -28,6 +28,38 @@ async def set_commands(bot: Bot):
             command="form",
             description="Форма"
         ),
+        BotCommand(
+            command="audio",
+            description="Аудио"
+        ),
+        BotCommand(
+            command="document",
+            description="Документ"
+        ),
+        BotCommand(
+            command="media_group",
+            description="Медиа группа"
+        ),
+        BotCommand(
+            command="photo",
+            description="Фото"
+        ),
+        BotCommand(
+            command="sticker",
+            description="Стикер"
+        ),
+        BotCommand(
+            command="video",
+            description="Видео"
+        ),
+        BotCommand(
+            command="video_note",
+            description="Видео заметка"
+        ),
+        BotCommand(
+            command="voice",
+            description="Голосовое сообщение"
+        ),
     ]
 
     await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
